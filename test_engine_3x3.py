@@ -6,79 +6,55 @@ class TestEngine3x3(TestCase):
     def setUp(self):
         self.engine = Engine(3)
 
-    def test_get_cell(self):
+    def test_place_mine_out_of_bounds(self):
+        with self.assertRaises(AssertionError):
+            self.engine.place_mine(3, 3)
+
+    def test_remove_mine_out_of_bounds(self):
+        with self.assertRaises(AssertionError):
+            self.engine.remove_mine(3, 3)
+
+    def test_place_and_remove_mine(self):
         self.engine.place_mine(0, 0)
-        self.engine.place_mine(1, 1)
-        self.engine.place_mine(0, 2)
-
-        self.assertEqual(self.engine.get_cell(0, 0), self.engine._board[0][0])
-        self.assertEqual(self.engine.get_cell(1, 1), self.engine._board[1][1])
-        self.assertEqual(self.engine.get_cell(0, 2), self.engine._board[0][2])
-        self.assertEqual(self.engine.get_cell(0, 1), self.engine._board[0][1])
-        self.assertEqual(self.engine.get_cell(1, 0), self.engine._board[1][0])
-        self.assertEqual(self.engine.get_cell(1, 2), self.engine._board[1][2])
-        self.assertEqual(self.engine.get_cell(2, 0), self.engine._board[2][0])
-        self.assertEqual(self.engine.get_cell(2, 1), self.engine._board[2][1])
-        self.assertEqual(self.engine.get_cell(2, 2), self.engine._board[2][2])
-
-    def test_increase_cell(self):
-        self.engine._increase_cell(0, 0)
-        self.assertEqual(self.engine.get_cell(0, 0), 1)
-
-    def test_decrease_cell(self):
-        self.engine._decrease_cell(0, 0)
-        self.assertEqual(self.engine.get_cell(0, 0), -1)
-
-    def test_place_mine(self):
-        self.engine.place_mine(1, 1)
-        self.assertEqual(self.engine.mine_count(), 1)
-        self.assertEqual(self.engine.get_board(), [
-            [1, 1, 1],
-            [1, None, 1],
-            [1, 1, 1],
-        ])
-
-        self.engine.place_mine(0, 0)
-        self.assertEqual(self.engine.mine_count(), 2)
-        self.assertEqual(self.engine.get_board(), [
-            [None, 2, 1],
-            [2, None, 1],
-            [1, 1, 1],
-        ])
-
-        self.engine.place_mine(2, 0)
-        self.assertEqual(self.engine.mine_count(), 3)
-        self.assertEqual(self.engine.get_board(), [
-            [None, 2, 1],
-            [3, None, 1],
-            [None, 2, 1],
-        ])
-
-    def test_remove_mine(self):
-        self.engine.place_mine(0, 0)
-        self.engine.place_mine(1, 1)
-        self.engine.place_mine(2, 0)
-
-        self.engine.remove_mine(1, 1)
-        self.assertEqual(self.engine.mine_count(), 2)
-        self.assertEqual(self.engine.get_board(), [
-            [None, 1, 0],
-            [2, 2, 0],
-            [None, 1, 0],
-        ])
+        self.assertEqual(self.engine._board, [[None, 0, 0], [0, 0, 0], [0, 0, 0]])
+        self.assertEqual(self.engine.mine_count, 1)
 
         self.engine.remove_mine(0, 0)
-        self.assertEqual(self.engine.mine_count(), 1)
-        self.assertEqual(self.engine.get_board(), [
-            [0, 0, 0],
-            [1, 1, 0],
-            [None, 1, 0],
-        ])
+        self.assertEqual(self.engine._board, [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+        self.assertEqual(self.engine.mine_count, 0)
 
-        self.engine.remove_mine(2, 0)
-        self.assertEqual(self.engine.mine_count(), 0)
-        self.assertEqual(self.engine.get_board(), [
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0],
-        ])
+    def test_place_mines(self):
+        self.engine.place_mines((0, 0), (1, 1), (2, 2))
+        self.assertEqual(self.engine._board, [[None, 0, 0], [0, None, 0], [0, 0, None]])
+        self.assertEqual(self.engine.mine_count, 3)
+
+    def test_update_board(self):
+        self.engine.place_mines((0, 0), (1, 1), (2, 2))
+        self.engine.update_board()
+        self.assertEqual(self.engine._board, [[None, 2, 1], [2, None, 2], [1, 2, None]])
+
+    def test_get_cell(self):
+        self.engine.place_mines((0, 0), (1, 1), (2, 2))
+        self.engine.update_board()
+
+        for x in range(self.engine.x):
+            for y in range(self.engine.y):
+                self.assertEqual(self.engine.get_cell(x, y), self.engine._board[x][y])
+
+    def test_getitem(self):
+        self.engine.place_mines((0, 0), (1, 1), (2, 2))
+        self.engine.update_board()
+
+        for x in range(self.engine.x):
+            for y in range(self.engine.y):
+                self.assertEqual(self.engine[x, y], self.engine._board[x][y])
+
+    def test_get_board(self):
+        self.engine.place_mines((0, 0), (1, 1), (2, 2))
+        self.engine.update_board()
+        self.assertEqual(self.engine.get_board(), self.engine._board)
+
+    def test_len(self):
+        self.assertEqual(len(self.engine), 0)
+        self.engine.place_mines((0, 0), (1, 1), (2, 2))
+        self.assertEqual(len(self.engine), 3)
