@@ -1,5 +1,5 @@
 from unittest import TestCase
-from engine import AutoUpdateEngine
+from auto_update_engine import AutoUpdateEngine
 
 
 class TestAutoUpdateEngine3x3(TestCase):
